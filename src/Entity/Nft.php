@@ -34,9 +34,13 @@ class Nft
     #[ORM\OneToMany(mappedBy: 'nft', targetEntity: NftPrice::class, orphanRemoval: true)]
     private Collection $nftPrices;
 
+    #[ORM\OneToMany(mappedBy: 'nft', targetEntity: Gallery::class)]
+    private Collection $galleries;
+
     public function __construct()
     {
         $this->nftPrices = new ArrayCollection();
+        $this->galleries = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -128,6 +132,36 @@ class Nft
             // set the owning side to null (unless already changed)
             if ($nftPrice->getNft() === $this) {
                 $nftPrice->setNft(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Gallery>
+     */
+    public function getGalleries(): Collection
+    {
+        return $this->galleries;
+    }
+
+    public function addGallery(Gallery $gallery): static
+    {
+        if (!$this->galleries->contains($gallery)) {
+            $this->galleries->add($gallery);
+            $gallery->setNft($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGallery(Gallery $gallery): static
+    {
+        if ($this->galleries->removeElement($gallery)) {
+            // set the owning side to null (unless already changed)
+            if ($gallery->getNft() === $this) {
+                $gallery->setNft(null);
             }
         }
 
