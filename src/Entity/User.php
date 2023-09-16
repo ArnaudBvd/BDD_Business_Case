@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -39,6 +41,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: "birth_date")]
     private ?DateTime $birthDate = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Wallet::class, orphanRemoval: true)]
+    private Collection $wallets;
+
+    public function __construct()
+    {
+        $this->wallets = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -156,5 +166,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection<int, Wallet>
+     */
+    public function getWallets(): Collection
+    {
+        return $this->wallets;
+    }
+
+    public function addWallet(Wallet $wallet): static
+    {
+        if (!$this->wallets->contains($wallet)) {
+            $this->wallets->add($wallet);
+            $wallet->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWallet(Wallet $wallet): static
+    {
+        if ($this->wallets->removeElement($wallet)) {
+            // set the owning side to null (unless already changed)
+            if ($wallet->getUser() === $this) {
+                $wallet->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }
